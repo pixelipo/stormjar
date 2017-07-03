@@ -1,0 +1,19 @@
+{
+    "network": {
+        "ssid": "",
+        "pass": ""
+    },
+    "secret": "",
+    "lat": "0.00",
+    "lon": "0.00",
+    "pin": {
+        "led": 1,
+        "pump": 2,
+        "fog": 3,
+        "switch": 4
+    },
+    "led": {
+        "brightness": 1,
+        "count": 8
+    }
+}
