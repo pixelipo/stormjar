@@ -1,4 +1,4 @@
-import requests
+import urequests
 import json
 from machine import Pin
 from neopixel import NeoPixel
@@ -22,8 +22,8 @@ PIXEL_MAX = CONF['led']['brightness']
 
 # Set auto-off time and sleep duration
 # default: 60*15 and 60*45
-AUTO_OFF = 15*60*1000  # miliseconds
-AUTO_SLEEP = time.sleep(2700)  # seconds
+AUTO_OFF = 15 * 60 * 1000  # miliseconds
+# AUTO_SLEEP = time.sleep(2700)  # seconds
 
 
 # Convert DarkSky weather types to supported weather types
@@ -46,10 +46,9 @@ def set_type(argument):
 
 def get_weather(lat, lon):
     # DarkSky URL contructor
-    url = 'https://api.darksky.net/forecast/' + (CONF['secret']) + '/' + lat + ',' + lon
-
+    url = "https://api.darksky.net/forecast/" + (CONF['secret']) + "/" + lat + "," + lon
     # Fetch DarkSky data
-    data = json.loads(requests.get(url).text)
+    data = json.loads(urequests.get(url).text)
 
     # Use daily forecast; TODO: smarter way to use weather data
     daily = data['daily']['icon']
@@ -104,7 +103,7 @@ def lightning_strobe(red, green, blue):
             if i % 2 == 0:
                 PIXEL[j] = (0, 0, 0)
             else:
-                PIXEL[j] = (red * PIXEL_MAX, green * PIXEL_MAX, blue * PIXEL_MAX)
+                PIXEL[j] = (int(red * PIXEL_MAX), int(green * PIXEL_MAX), int(blue * PIXEL_MAX))
 
             PIXEL.write()
             time.sleep_ms(i)
@@ -118,11 +117,13 @@ def clear_led():
     PIXEL.write()
 
 
-def main():
+def main_loop():
+    import webrepl
+    webrepl.start()
     while 1 == 1:
-        get_weather(CONF['lat'], CONF['lon'], )
-        time.sleep(AUTO_SLEEP)
+        get_weather(CONF['lat'], CONF['lon'])
+        time.sleep(5)
 
 
 # Initiate main loop
-main()
+main_loop()

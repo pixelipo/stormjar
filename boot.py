@@ -1,5 +1,6 @@
 import network
 import json
+import main
 
 
 def do_connect():
@@ -17,3 +18,4 @@ def do_connect():
 
 
 do_connect()
+main()
