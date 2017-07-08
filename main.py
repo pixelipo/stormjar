@@ -1,4 +1,3 @@
-import urequests
 import json
 from machine import Pin
 from neopixel import NeoPixel
@@ -44,15 +43,44 @@ def set_type(argument):
     return switcher.get(argument, "clear")
 
 
-def get_weather(lat, lon):
-    # DarkSky URL contructor
-    url = "https://api.darksky.net/forecast/" + (CONF['secret']) + "/" + lat + "," + lon
-    # Fetch DarkSky data
-    data = json.loads(urequests.get(url).text)
+def http_get(host, path, use_stream=True):
+    import socket
+    import ssl
 
-    # Use daily forecast; TODO: smarter way to use weather data
-    daily = data['daily']['icon']
-    return set_type(daily)
+    addr = socket.getaddrinfo(host, 443)[0][-1]
+    s = socket.socket()
+    s.connect(addr)
+    s = ssl.wrap_socket(s)
+
+    if use_stream:
+        s.write(bytes('GET /%s HTTP/1.0\r\nHost: %s\r\n\r\n' % (path, host), 'utf-8'))
+        l = s.read(20000)
+    else:
+        s.send(bytes('GET /%s HTTP/1.0\r\nHost: %s\r\n\r\n' % (path, host), 'utf-8'))
+        l = s.recv(20000)
+    response, content = l.split(b"\r\n\r\n")
+    s.close()
+    return str(content, 'utf-8')
+
+
+def get_weather(lat, lon):
+    now = time.localtime().tm_hour
+    hour = 8 - now
+    if now > 8:
+        hour += 24
+
+    # DarkSky URL contructor
+    host = "api.darksky.net"
+    path = "forecast/" + (CONF['secret']) + "/" + lat + "," + lon + "?exclude=minutely,currently,daily,flags&units=si"
+    # Fetch DarkSky data
+    resp = http_get(host, path)
+    data = json.loads(resp)
+
+    # Get 8AM forecast; TODO: smarter way to use weather data
+    eight = data['hourly']['data'][hour]['icon']
+    sixteen = data['hourly']['data'][hour + 8]['icon']
+    print(eight, sixteen)
+    return set_type(eight)
 
 
 def clear():
@@ -122,7 +150,7 @@ def main_loop():
     webrepl.start()
     while 1 == 1:
         get_weather(CONF['lat'], CONF['lon'])
-        time.sleep(5)
+        time.sleep(600)
 
 
 # Initiate main loop
